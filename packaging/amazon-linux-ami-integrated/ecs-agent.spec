@@ -19,6 +19,14 @@
 %global no_exec_perm 644
 %global agent_image ecs-agent-v%{version}.tar
 
+//test
+
+//test
+
+//test
+
+//test
+
 Name:           ecs-init
 Version:        1.70.2
 Release:        1%{?dist}
