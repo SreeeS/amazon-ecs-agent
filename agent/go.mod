@@ -41,10 +41,12 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/cilium/ebpf v0.6.2 // indirect
 	github.com/containerd/continuity v0.3.0 // indirect
+	github.com/coreos/go-systemd v0.0.0-20190321100706-95778dfbb74e // indirect
 	github.com/coreos/go-systemd/v22 v22.3.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/didip/tollbooth v4.0.2+incompatible // indirect
 	github.com/docker/distribution v2.8.2+incompatible // indirect
+	github.com/godbus/dbus v0.0.0-20180201030542-885f9cc04c9c // indirect
 	github.com/godbus/dbus/v5 v5.0.6 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect

@@ -14,9 +14,11 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 
@@ -27,6 +29,7 @@ import (
 	"github.com/aws/amazon-ecs-agent/ecs-agent/logger/field"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/cihub/seelog"
+	"github.com/coreos/go-systemd/v22/dbus"
 	"github.com/pkg/errors"
 )
 
@@ -586,4 +589,41 @@ func removeAttributesByNames(attributes []*ecs.Attribute, names []string) []*ecs
 		}
 	}
 	return ret
+}
+
+func isGDEnabled() (bool, error) {
+	service := "ecs"
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	conn, err := dbus.NewSystemdConnectionContext(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	defer conn.Close()
+
+	property, err := conn.GetUnitPropertyContext(ctx, service, "UnitFileState")
+	if err != nil {
+		return false, err
+	}
+	fmt.Printf("Property", property)
+	if property.Value.Value() == "enabled" {
+		return true, nil
+	}
+	return false, nil
+
+	// backup option
+
+	cmd := exec.Command("systemctl", "is-enabled", service)
+	status, err := cmd.Output()
+	if err != nil {
+		return false, fmt.Errorf("error getting the status for service %s: %v", service, err)
+	}
+
+	if string(status) == "enabled" {
+		return true, nil
+	}
+	return false, nil
 }
