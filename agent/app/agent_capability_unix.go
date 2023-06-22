@@ -232,3 +232,7 @@ func (agent *ecsAgent) getTaskENIPluginVersionAttribute() (*ecs.Attribute, error
 func defaultIsPlatformExecSupported() (bool, error) {
 	return true, nil
 }
+
+func defaultIsGuardDutySupported() (bool, error) {
+	return true, nil
+}

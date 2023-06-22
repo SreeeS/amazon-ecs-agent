@@ -142,3 +142,7 @@ func defaultIsPlatformExecSupported() (bool, error) {
 	}
 	return true, nil
 }
+
+func defaultIsGuardDutySupported() (bool, error) {
+	return false, errors.New("GuardDuty is currently not supported on windows")
+}

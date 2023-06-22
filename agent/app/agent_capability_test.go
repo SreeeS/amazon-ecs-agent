@@ -136,6 +136,7 @@ func TestCapabilities(t *testing.T) {
 		attributePrefix + capabilityExec,
 		attributePrefix + capabilityServiceConnect,
 		attributePrefix + capabilityContainerPortRange,
+		attributePrefix + capabilityGuardDuty,
 	}
 
 	var expectedCapabilities []*ecs.Attribute
@@ -1236,6 +1237,7 @@ func TestCapabilitiesNoServiceConnect(t *testing.T) {
 		attributePrefix + taskENIBlockInstanceMetadataAttributeSuffix,
 		attributePrefix + capabilityExec,
 		attributePrefix + capabilityContainerPortRange,
+		attributePrefix + capabilityGuardDuty,
 	}
 
 	var expectedCapabilities []*ecs.Attribute
@@ -1476,4 +1478,41 @@ func TestAppendGMSADomainlessCapabilitiesFalse(t *testing.T) {
 	capabilities := agent.appendGMSADomainlessCapabilities(inputCapabilities)
 
 	assert.Equal(t, len(expectedCapabilities), len(capabilities))
+}
+
+func TestIsGuardDutyEnabled(t *testing.T) {
+
+	testCases := []struct {
+		name           string
+		expectedResult bool
+		expectedError  error
+	}{
+		{
+			name:     "Return 'true' for file exists",
+			expected: true,
+		},
+		{
+			name:     "Return 'false' for file not exists",
+			expected: false, errors.New("Test err for file does not exists"),
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.expectedResult == true {
+				isGuardDutyEnabled = func() (bool, error) {
+					return true, nil
+				}
+			}
+			assert.Equal(t, tc.expectedResult, isGuardDutyEnabled)
+			assert.Equal(t, tc.expectedError, isGuardDutyEnabled)
+
+			if tc.expected == false {
+				isGuardDutyEnabled = func() (bool, error) {
+					return false, errors.New("Test err for file does not exists")
+				}
+			}
+			assert.Equal(t, tc.expectedResult, isGuardDutyEnabled)
+			assert.Equal(t, tc.expectedError, isGuardDutyEnabled)
+		})
+	}
 }

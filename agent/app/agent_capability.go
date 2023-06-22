@@ -14,11 +14,10 @@
 package app
 
 import (
-	"context"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 
@@ -29,7 +28,6 @@ import (
 	"github.com/aws/amazon-ecs-agent/ecs-agent/logger/field"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/cihub/seelog"
-	"github.com/coreos/go-systemd/v22/dbus"
 	"github.com/pkg/errors"
 )
 
@@ -80,10 +78,13 @@ const (
 	capabilityExecCertsRelativePath                        = "certs"
 	capabilityExternal                                     = "external"
 	capabilityServiceConnect                               = "service-connect-v1"
+	capabilityGuardDuty                                    = "guard-duty-patrol"
 
 	// network capabilities, going forward, please append "network." prefix to any new networking capability we introduce
 	networkCapabilityPrefix      = "network."
 	capabilityContainerPortRange = networkCapabilityPrefix + "container-port-range"
+
+	GuardDutySystemdServiceFilePath = "ecs.service"
 )
 
 var (
@@ -116,6 +117,7 @@ var (
 	pathExists              = defaultPathExists
 	getSubDirectories       = defaultGetSubDirectories
 	isPlatformExecSupported = defaultIsPlatformExecSupported
+	isGuardDutySupported    = defaultIsGuardDutySupported
 
 	// List of capabilities that are not supported on external capacity.
 	externalUnsupportedCapabilities = []string{
@@ -191,6 +193,7 @@ var (
 //	ecs.capability.execute-command
 //	ecs.capability.external
 //	ecs.capability.service-connect-v1
+//	ecs.capability.guard-duty-patrol
 //	ecs.capability.network.container-port-range
 func (agent *ecsAgent) capabilities() ([]*ecs.Attribute, error) {
 	var capabilities []*ecs.Attribute
@@ -301,6 +304,8 @@ func (agent *ecsAgent) capabilities() ([]*ecs.Attribute, error) {
 		capabilities = removeAttributesByNames(capabilities, externalUnsupportedCapabilities)
 	}
 
+	capabilities = agent.appendGuardDutyCapabilities(capabilities)
+
 	return capabilities, nil
 }
 
@@ -322,7 +327,6 @@ func (agent *ecsAgent) appendGMSACapabilities(capabilities []*ecs.Attribute) []*
 	if agent.cfg.GMSACapable.Enabled() {
 		return appendNameOnlyAttribute(capabilities, attributePrefix+capabilityGMSA)
 	}
-
 	return capabilities
 }
 
@@ -501,6 +505,24 @@ func (agent *ecsAgent) appendServiceConnectCapabilities(capabilities []*ecs.Attr
 	return capabilities
 }
 
+func (agent *ecsAgent) appendGuardDutyCapabilities(capabilities []*ecs.Attribute) []*ecs.Attribute {
+	isEnabled, err := isGuardDutyEnabled()
+
+	if supported, err := isGuardDutySupported(); !supported || err != nil {
+		log.Printf("Error: %v, Supported: %b", err, isEnabled)
+		return capabilities
+	}
+
+	if err != nil {
+		logger.Warn(fmt.Sprintf("Skipping emabling GuardDutyCapabilities. Error: %v", err))
+	}
+	if isEnabled {
+		log.Printf("Enable capability")
+		return appendNameOnlyAttribute(capabilities, attributePrefix+capabilityGuardDuty)
+	}
+	return capabilities
+}
+
 func defaultGetSubDirectories(path string) ([]string, error) {
 	var subDirectories []string
 
@@ -591,39 +613,13 @@ func removeAttributesByNames(attributes []*ecs.Attribute, names []string) []*ecs
 	return ret
 }
 
-func isGDEnabled() (bool, error) {
-	service := "ecs"
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	conn, err := dbus.NewSystemdConnectionContext(ctx)
+func isGuardDutyEnabled() (bool, error) {
+	exists, err := defaultPathExists(GuardDutySystemdServiceFilePath, false)
+	if exists {
+		return true, err
+	}
 	if err != nil {
-		return false, err
+		seelog.Infof("%v", err)
 	}
-
-	defer conn.Close()
-
-	property, err := conn.GetUnitPropertyContext(ctx, service, "UnitFileState")
-	if err != nil {
-		return false, err
-	}
-	fmt.Printf("Property", property)
-	if property.Value.Value() == "enabled" {
-		return true, nil
-	}
-	return false, nil
-
-	// backup option
-
-	cmd := exec.Command("systemctl", "is-enabled", service)
-	status, err := cmd.Output()
-	if err != nil {
-		return false, fmt.Errorf("error getting the status for service %s: %v", service, err)
-	}
-
-	if string(status) == "enabled" {
-		return true, nil
-	}
-	return false, nil
+	return false, err
 }

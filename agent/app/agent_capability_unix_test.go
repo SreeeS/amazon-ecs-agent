@@ -839,6 +839,7 @@ func TestCapabilitiesUnix(t *testing.T) {
 		attributePrefix + capabilityFirelensLoggingDriver + capabilityFireLensLoggingDriverConfigBufferLimitSuffix,
 		attributePrefix + capabilityEnvFilesS3,
 		attributePrefix + capabilityContainerPortRange,
+		attributePrefix + capabilityGuardDuty,
 	}
 
 	var expectedCapabilities []*ecs.Attribute
