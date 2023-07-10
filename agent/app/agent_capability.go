@@ -84,7 +84,7 @@ const (
 	networkCapabilityPrefix      = "network."
 	capabilityContainerPortRange = networkCapabilityPrefix + "container-port-range"
 
-	GuardDutySystemdServiceFilePath = "ecs.service"
+	GuardDutySystemdServiceFilePath = "/usr/lib/systemd/system/ecs.service"
 )
 
 var (
