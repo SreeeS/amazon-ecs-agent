@@ -17,8 +17,12 @@ const ecsDefaultProfile = `
 profile ecs-default flags=(attach_disconnected,mediate_deleted) {
   #include <abstractions/base>
 
-  network,
-  capability,
+  network inet, # Allow IPv4 traffic
+  network inet6, # Allow IPv6 traffic
+
+  capability net_admin, # Allow network configuration
+  capability sys_admin, # Allow ECS Agent to invoke the setns system call
+  
   file,
   umount,
   # Host (privileged) processes may send signals to container processes.
