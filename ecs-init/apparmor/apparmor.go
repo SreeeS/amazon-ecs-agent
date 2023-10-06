@@ -25,6 +25,7 @@ profile ecs-default flags=(attach_disconnected,mediate_deleted) {
 
   capability net_admin, # Allow network configuration
   capability sys_admin, # Allow ECS Agent to invoke the setns system call
+  capability dac_override,
 
   file,
   umount,
