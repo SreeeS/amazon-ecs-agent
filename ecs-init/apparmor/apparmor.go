@@ -25,16 +25,18 @@ profile ecs-default flags=(attach_disconnected,mediate_deleted) {
 
   capability net_admin, # Allow network configuration
   capability sys_admin, # Allow ECS Agent to invoke the setns system call
-
+  
   file,
   umount,
   # Host (privileged) processes may send signals to container processes.
   signal (receive) peer=unconfined,
   # Container processes may send signals amongst themselves.
   signal (send,receive) peer=ecs-default,
-
+  
   # ECS agent requires DBUS send
   dbus (send) bus=system,
+
+  /sys/fs/cgroup/** rwlmk,
 
   deny @{PROC}/* w,   # deny write for all files directly in /proc (not in a subdir)
   # deny write to files not in /proc/<number>/** or /proc/sys/**
