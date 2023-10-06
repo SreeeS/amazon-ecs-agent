@@ -25,7 +25,7 @@ profile ecs-default flags=(attach_disconnected,mediate_deleted) {
 
   capability net_admin, # Allow network configuration
   capability sys_admin, # Allow ECS Agent to invoke the setns system call
-  capability dac_override, # Allow ECS Agent to file read, write, and execute permission
+
   file,
   umount,
   # Host (privileged) processes may send signals to container processes.
@@ -46,11 +46,6 @@ profile ecs-default flags=(attach_disconnected,mediate_deleted) {
 
   deny mount,
 
-  deny /sys/[^f]*/** wklx,
-  deny /sys/f[^s]*/** wklx,
-  deny /sys/fs/[^c]*/** wklx,
-  deny /sys/fs/c[^g]*/** wklx,
-  deny /sys/fs/cg[^r]*/** wklx,
   deny /sys/firmware/** rwklx,
   deny /sys/kernel/security/** rwklx,
 
