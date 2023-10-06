@@ -36,6 +36,7 @@ profile ecs-default flags=(attach_disconnected,mediate_deleted) {
   # ECS agent requires DBUS send
   dbus (send) bus=system,
 
+  mount options=(ro, bind) /sys/fs/cgroup/ -> /sys/fs/cgroup/,
   /sys/fs/cgroup/** rwlmk,
 
   deny @{PROC}/* w,   # deny write for all files directly in /proc (not in a subdir)
