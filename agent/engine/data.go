@@ -16,7 +16,6 @@ package engine
 import (
 	apicontainer "github.com/aws/amazon-ecs-agent/agent/api/container"
 	apitask "github.com/aws/amazon-ecs-agent/agent/api/task"
-	"github.com/aws/amazon-ecs-agent/agent/data"
 	"github.com/aws/amazon-ecs-agent/agent/engine/dockerstate"
 	"github.com/aws/amazon-ecs-agent/agent/engine/image"
 	"github.com/aws/amazon-ecs-agent/agent/utils"
@@ -237,18 +236,18 @@ func (engine *DockerTaskEngine) removeTaskData(task *apitask.Task) {
 	if err != nil {
 		seelog.Errorf("Failed to remove data for task %s: %v", task.Arn, err)
 	}
-
-	for _, c := range task.Containers {
-		id, err := data.GetContainerID(c)
-		if err != nil {
-			seelog.Errorf("Failed to get container id from container %s: %v", c.Name, err)
-			continue
-		}
-		err = engine.dataClient.DeleteContainer(id)
-		if err != nil {
-			seelog.Errorf("Failed to remove data for container %s: %v", c.Name, err)
-		}
-	}
+	seelog.Info("Skipping DeleteContainer to reproduce corrupt boltDB")
+	//for _, c := range task.Containers {
+	//	id, err := data.GetContainerID(c)
+	//	if err != nil {
+	//		seelog.Errorf("Failed to get container id from container %s: %v", c.Name, err)
+	//		continue
+	//	}
+	//	err = engine.dataClient.DeleteContainer(id)
+	//	if err != nil {
+	//		seelog.Errorf("Failed to remove data for container %s: %v", c.Name, err)
+	//	}
+	//}
 }
 
 func (engine *DockerTaskEngine) removeENIAttachmentData(mac string) {
